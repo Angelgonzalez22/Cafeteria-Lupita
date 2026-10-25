@@ -1,0 +1,13 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Cafeteria Lupita",
+      "Group": "Servers",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "cafeteria_lupita",
+      "Username": "lupita",
+      "SSLMode": "prefer"
+    }
+  }
+}
