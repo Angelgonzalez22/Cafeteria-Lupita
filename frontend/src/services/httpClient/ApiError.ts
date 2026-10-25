@@ -1,4 +1,5 @@
-/* Conserva el estado HTTP y el mensaje del backend sin depender de la interfaz. */
+/* ERRORES DE LA API */
+
 import { isAxiosError, isCancel } from "axios";
 
 import type { ApiErrorDetails, ApiFailureKind } from "../../models/common/apiError";

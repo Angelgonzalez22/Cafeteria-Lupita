@@ -1,4 +1,5 @@
-/* Contrato común de respuestas del backend. */
+/* RESPUESTA DE LA API */
+
 export interface ApiResponse<T> {
   status: number;
   titulo: string;

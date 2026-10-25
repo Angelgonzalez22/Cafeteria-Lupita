@@ -1,4 +1,4 @@
-/* Define las rutas del inicio de sesión y los roles. */
+/* RUTAS DE LA APLICACIÓN */
 
 export type RootStackParamList = {
   Login: undefined;

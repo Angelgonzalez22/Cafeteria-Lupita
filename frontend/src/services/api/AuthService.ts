@@ -1,4 +1,4 @@
-/* Realiza las peticiones de autenticación. */
+/* SERVICIO DE AUTENTICACIÓN */
 
 import type {
     LoginRequest,

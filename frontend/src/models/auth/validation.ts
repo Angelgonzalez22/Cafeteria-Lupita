@@ -1,13 +1,11 @@
-/* Valida los datos de autenticación y la sesión guardada. */
+/* VALIDACIÓN DE ACCESO */
 
 import { z } from "zod";
 
 export const loginSchema = z.object({
   cedula: z.string().trim().min(1, "Ingresa tu cédula.").max(25, "Máximo 25 caracteres."),
   contrasena: z.string()
-    .min(1, "Ingresa tu contraseña.")
-    .max(1024, "Máximo 1024 caracteres.")
-    .refine((value) => value.trim().length > 0, "Ingresa tu contraseña."),
+    .regex(/^\d{6}$/, "Ingresa un PIN de 6 números."),
 });
 
 export const usuarioSchema = z.object({

@@ -1,4 +1,5 @@
-/* Botón accesible con variantes y bloqueo durante una operación. */
+/* BOTÓN REUTILIZABLE */
+
 import {
   ActivityIndicator,
   Pressable,

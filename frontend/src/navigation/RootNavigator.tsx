@@ -1,6 +1,4 @@
-/*
- * Selecciona el inicio según la sesión y el rol del usuario.
- */
+/* NAVEGACIÓN SEGÚN LA SESIÓN */
 
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -13,7 +11,7 @@ import {
 } from "react-native";
 
 import { AppButton } from "../components/common/AppButton";
-import { AppModal } from "../components/common/AppModal";
+import { AppModal } from "../components/modals/AppModal";
 import { ScreenWrapper } from "../components/layout/ScreenWrapper";
 
 import { colors } from "../constants/colors";
@@ -129,7 +127,7 @@ export const RootNavigator = () => {
       style={styles.root}
       onLayout={handleLayout}
     >
-      <StatusBar style={showSplash ? "light" : "dark"} />
+      <StatusBar style="dark" />
       {renderContent()}
       {!showSplash && renderErrorModal()}
     </View>

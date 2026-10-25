@@ -1,4 +1,4 @@
-/* Presenta la marca mientras se prepara la sesión de la app. */
+/* PANTALLA DE BIENVENIDA */
 
 import {
   ActivityIndicator,
@@ -13,8 +13,11 @@ import { ScreenWrapper } from "../../components/layout/ScreenWrapper";
 import { colors } from "../../constants/colors";
 import { radius, spacing } from "../../constants/spacing";
 import { typography } from "../../constants/typography";
+import { useSplashMessages } from "../../hooks/useSplashMessages";
 
 export const SplashScreen = () => {
+  const message = useSplashMessages();
+
   const renderBrand = () => (
     <View style={styles.brand}>
       <View style={styles.markFrame}>
@@ -46,17 +49,20 @@ export const SplashScreen = () => {
       accessibilityLabel="Preparando Cafetería Lupita"
       style={styles.loading}
     >
-      <ActivityIndicator color={colors.textOnPrimary} />
+      <ActivityIndicator color={colors.primary} />
 
-      <Text style={styles.loadingText}>
-        Preparando todo para ti
+      <Text
+        accessibilityLiveRegion="polite"
+        style={styles.loadingText}
+      >
+        {message}
       </Text>
     </View>
   );
 
   return (
     <ScreenWrapper
-      backgroundColor={colors.primary}
+      backgroundColor={colors.background}
       contentStyle={styles.content}
     >
       <View
@@ -90,7 +96,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: radius.full,
-    backgroundColor: colors.primaryPressed,
+    backgroundColor: colors.primaryLight,
     top: -130,
     right: -150,
     opacity: 0.6,
@@ -105,10 +111,12 @@ const styles = StyleSheet.create({
     borderColor: colors.primaryLight,
     bottom: -120,
     left: -150,
-    opacity: 0.2,
+    opacity: 1,
   },
 
   brand: {
+    flex: 1,
+    justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: spacing.base,
     paddingBottom: spacing.xxxl,
@@ -118,14 +126,14 @@ const styles = StyleSheet.create({
     width: 136,
     height: 136,
     borderRadius: radius.xl + spacing.sm,
-    backgroundColor: colors.background,
+    backgroundColor: colors.primaryLight,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: spacing.xxl,
   },
 
   eyebrow: {
-    color: colors.textOnPrimary,
+    color: colors.textSecondary,
     fontSize: typography.size.caption,
     fontWeight: typography.weight.semibold,
     letterSpacing: 5,
@@ -133,7 +141,7 @@ const styles = StyleSheet.create({
   },
 
   name: {
-    color: colors.textOnPrimary,
+    color: colors.primary,
     fontSize: 56,
     fontWeight: typography.weight.bold,
     letterSpacing: -1,
@@ -145,13 +153,13 @@ const styles = StyleSheet.create({
     width: 36,
     height: 3,
     borderRadius: radius.full,
-    backgroundColor: colors.textOnPrimary,
+    backgroundColor: colors.primary,
     marginVertical: spacing.xl,
     opacity: 0.65,
   },
 
   tagline: {
-    color: colors.textOnPrimary,
+    color: colors.textSecondary,
     fontSize: typography.size.body,
     textAlign: "center",
     opacity: 0.85,
@@ -162,11 +170,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: spacing.md,
     paddingTop: spacing.xl,
+    paddingBottom: spacing.xl,
+    paddingHorizontal: spacing.base,
+    minHeight: 112,
   },
 
   loadingText: {
-    color: colors.textOnPrimary,
-    fontSize: typography.size.caption,
-    opacity: 0.75,
+    color: colors.primary,
+    fontSize: typography.size.body,
+    fontWeight: typography.weight.medium,
+    textAlign: "center",
   },
 });

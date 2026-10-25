@@ -1,4 +1,5 @@
-/* LO UTILIZAMOS PARA LOS BORDER Y ESPACIADOS DEL APP */
+/* ESPACIADOS Y BORDES */
+
 export const spacing = {
   xs: 4,
   sm: 8,

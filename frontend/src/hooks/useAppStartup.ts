@@ -1,4 +1,4 @@
-/* Coordina la presentación inicial y la salida del splash nativo. */
+/* CONTROL DEL ARRANQUE */
 
 import { useCallback, useEffect, useState } from "react";
 import * as NativeSplashScreen from "expo-splash-screen";
@@ -9,7 +9,7 @@ export const useAppStartup = (ready: boolean, busy: boolean) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIntroFinished(true);
-    }, 900);
+    }, 3300);
 
     return () => {
       clearTimeout(timer);

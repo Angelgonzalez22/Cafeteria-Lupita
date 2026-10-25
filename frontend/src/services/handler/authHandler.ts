@@ -1,4 +1,4 @@
-/* Expone las operaciones de autenticación de la API. */
+/* OPERACIONES DE AUTENTICACIÓN */
 
 import type {
     LoginRequest,

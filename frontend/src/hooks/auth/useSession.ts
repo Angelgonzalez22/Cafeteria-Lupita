@@ -1,7 +1,6 @@
-/*
- * Expone la sesión y el cierre de sesión de la interfaz.
- */
+/* ACCESO Y CIERRE DE SESIÓN */
 
+import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { cerrarSesion } from "../../services/handler/sessionHandler";
@@ -11,6 +10,7 @@ export const useSession = () => {
   const session = useSessionStore((state) => state.session);
   const busy = useSessionStore((state) => state.busy);
   const queryClient = useQueryClient();
+  const [logoutConfirmationVisible, setLogoutConfirmationVisible] = useState(false);
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -30,12 +30,30 @@ export const useSession = () => {
   });
 
   const logout = () => {
+    if (useSessionStore.getState().busy || mutation.isPending) {
+      return;
+    }
+
+    setLogoutConfirmationVisible(false);
     mutation.mutate();
+  };
+
+  const requestLogout = () => {
+    if (!useSessionStore.getState().busy && !mutation.isPending) {
+      setLogoutConfirmationVisible(true);
+    }
+  };
+
+  const cancelLogout = () => {
+    setLogoutConfirmationVisible(false);
   };
 
   return {
     session,
     busy: busy || mutation.isPending,
     logout,
+    logoutConfirmationVisible,
+    requestLogout,
+    cancelLogout,
   };
 };

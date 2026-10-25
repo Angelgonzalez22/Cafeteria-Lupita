@@ -1,4 +1,4 @@
-/* Conserva el estado de la sesión de la aplicación. */
+/* ESTADO DE LA SESIÓN */
 
 import { create } from "zustand";
 import type { SessionState } from "../models/auth/auth";

@@ -1,4 +1,5 @@
-/* COLORES QUE UTILIZARE EN TODO MI APLICACION */
+/* COLORES DE LA APLICACIÓN */
+
 export const colors = {
   primary: "#2563EB",
   primaryPressed: "#1D4ED8",

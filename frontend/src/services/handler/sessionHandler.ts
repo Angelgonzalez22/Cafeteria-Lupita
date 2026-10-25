@@ -1,4 +1,4 @@
-/* Coordina el inicio, la restauración y el cierre de sesión. */
+/* CONTROL DE LA SESIÓN */
 
 import type { LoginRequest, Sesion } from "../../models/auth/auth";
 import {

@@ -1,4 +1,4 @@
-/* Campo reutilizable con validación y opción de contraseña. */
+/* CAMPO DE TEXTO REUTILIZABLE */
 
 import {
   forwardRef,
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
 
   label: {
     color: colors.text,
-    fontSize: typography.size.body,
+    fontSize: typography.size.body - 2,
     fontWeight: typography.weight.medium
   },
 
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
     minHeight: 52,
     padding: spacing.md,
     color: colors.text,
-    fontSize: typography.size.body
+    fontSize: typography.size.body - 2
   },
 
   invalid: {

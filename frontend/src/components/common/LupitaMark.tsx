@@ -1,4 +1,4 @@
-/* Identidad visual de Cafetería Lupita. */
+/* MARCA DE CAFETERÍA LUPITA */
 
 import Svg, { Path } from "react-native-svg";
 

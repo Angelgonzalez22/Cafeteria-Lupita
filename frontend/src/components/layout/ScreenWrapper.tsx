@@ -1,4 +1,5 @@
 /* ENVOLVENTE PARA EL DISEÑO DE LA PANTALLA */
+
 import { ReactNode } from "react";
 
 import {
@@ -65,6 +66,7 @@ export const ScreenWrapper = ({
       ]}
       showsVerticalScrollIndicator={false}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
     >
       <View style={containerStyles}>
         {children}
@@ -93,7 +95,7 @@ export const ScreenWrapper = ({
           behavior={
             Platform.OS === "ios"
               ? "padding"
-              : undefined
+              : Platform.OS === "android" ? "height" : undefined
           }
         >
           {content}

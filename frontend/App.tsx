@@ -1,4 +1,4 @@
-/* Monta los proveedores y prepara la pantalla de arranque. */
+/* PROVEEDORES Y ARRANQUE DE LA APP */
 
 import * as NativeSplashScreen from "expo-splash-screen";
 import { StyleSheet } from "react-native";

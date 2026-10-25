@@ -1,12 +1,10 @@
-/*
- * Pantalla de inicio de sesión de Cafetería Lupita.
- * Permite autenticar empleados mediante cédula y contraseña.
- */
+/* INICIO DE SESIÓN */
 
-import { useRef } from "react";
+import { useRef, type ComponentRef } from "react";
 import { Controller } from "react-hook-form";
 import {
   StyleSheet,
+  ScrollView,
   Text,
   View,
   type TextInputInstance,
@@ -15,14 +13,16 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { AppButton } from "../../components/common/AppButton";
 import { AppInput } from "../../components/common/AppInput";
-import { AppModal } from "../../components/common/AppModal";
+import { AppPinInput } from "../../components/common/AppPinInput";
+import { AppModal } from "../../components/modals/AppModal";
 import { ScreenWrapper } from "../../components/layout/ScreenWrapper";
 
 import { colors } from "../../constants/colors";
-import { spacing } from "../../constants/spacing";
+import { radius, spacing } from "../../constants/spacing";
 import { typography } from "../../constants/typography";
 
 import { useLogin } from "../../hooks/auth/useLogin";
+import { useKeyboardVisible } from "../../hooks/useKeyboardVisible";
 
 export const LoginScreen = () => {
   const {
@@ -35,6 +35,9 @@ export const LoginScreen = () => {
   } = useLogin();
 
   const passwordRef = useRef<TextInputInstance>(null);
+  const scrollRef = useRef<ComponentRef<typeof ScrollView>>(null);
+  const pinFocused = useRef(false);
+  const keyboardVisible = useKeyboardVisible();
 
   const handleSubmit = () => {
     void submit();
@@ -44,14 +47,25 @@ export const LoginScreen = () => {
     passwordRef.current?.focus();
   };
 
+  const handleScrollLayout = () => {
+    if (keyboardVisible && pinFocused.current) {
+      scrollRef.current?.scrollToEnd({ animated: true });
+    }
+  };
+
   const renderHeader = () => (
-    <View style={styles.heading}>
-      <Ionicons
-        name="cafe-outline"
-        size={48}
-        color={colors.primary}
-        accessible={false}
-      />
+    <View style={[styles.heading, keyboardVisible && styles.compactHeading]}>
+      <View
+        pointerEvents="none"
+        style={styles.logoFrame}
+      >
+        <Ionicons
+          name="cafe-outline"
+          size={40}
+          color={colors.primary}
+          accessible={false}
+        />
+      </View>
 
       <Text
         accessibilityRole="header"
@@ -61,7 +75,7 @@ export const LoginScreen = () => {
       </Text>
 
       <Text style={styles.subtitle}>
-        Inicia sesión para continuar
+        Tu cafetería, en orden.
       </Text>
     </View>
   );
@@ -97,20 +111,25 @@ export const LoginScreen = () => {
       control={form.control}
       name="contrasena"
       render={({ field, fieldState }) => (
-        <AppInput
+        <AppPinInput
           ref={(input) => {
             field.ref(input);
             passwordRef.current = input;
           }}
-          label="Contraseña"
-          password
+          label="PIN de acceso"
+          length={6}
           value={field.value}
           onChangeText={field.onChange}
-          onBlur={field.onBlur}
+          onFocus={() => {
+            pinFocused.current = true;
+            scrollRef.current?.scrollToEnd({ animated: true });
+          }}
+          onBlur={() => {
+            pinFocused.current = false;
+            field.onBlur();
+          }}
           error={fieldState.error?.message}
           disabled={loading}
-          autoCapitalize="none"
-          autoCorrect={false}
           autoComplete="current-password"
           textContentType="password"
           returnKeyType="go"
@@ -121,21 +140,26 @@ export const LoginScreen = () => {
   );
 
   const renderForm = () => (
-    <View style={styles.form}>
+    <View style={[styles.form, keyboardVisible && styles.compactForm]}>
       {renderHeader()}
 
       {renderCedulaInput()}
 
       {renderPasswordInput()}
 
+      {renderSubmitButton()}
+    </View>
+  );
+
+  const renderSubmitButton = () => (
       <AppButton
         title="Iniciar sesión"
         onPress={handleSubmit}
         loading={loading}
         disabled={!canSubmit}
+        style={styles.submitButton}
         fullWidth
       />
-    </View>
   );
 
   const renderErrorModal = () => (
@@ -150,17 +174,35 @@ export const LoginScreen = () => {
 
   return (
     <ScreenWrapper
-      scroll
       keyboardAvoiding
-      contentStyle={styles.content}
+      contentStyle={styles.screen}
     >
-      {renderForm()}
+      <ScrollView
+        ref={scrollRef}
+        onLayout={handleScrollLayout}
+        style={styles.scroll}
+        contentContainerStyle={[styles.content, keyboardVisible && styles.keyboardContent]}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        showsVerticalScrollIndicator={false}
+      >
+        {renderForm()}
+      </ScrollView>
+
       {renderErrorModal()}
     </ScreenWrapper>
   );
 };
 
 const styles = StyleSheet.create({
+  screen: {
+    flex: 1,
+  },
+
+  scroll: {
+    flex: 1,
+  },
+
   content: {
     flexGrow: 1,
     justifyContent: "center",
@@ -175,22 +217,52 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xxl,
   },
 
+  keyboardContent: {
+    justifyContent: "flex-start",
+    paddingBottom: spacing.base,
+  },
+
+  compactForm: {
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+
+  compactHeading: {
+    marginBottom: 0,
+  },
+
   heading: {
     alignItems: "center",
-    gap: spacing.md,
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+
+  logoFrame: {
+    width: 88,
+    height: 88,
+    borderRadius: radius.xl + spacing.xs,
+    backgroundColor: colors.primaryLight,
+    alignItems: "center",
+    justifyContent: "center",
     marginBottom: spacing.sm,
   },
 
   title: {
     color: colors.text,
     fontSize: typography.size.title,
-    fontWeight: typography.weight.bold,
+    fontWeight: typography.weight.semibold,
     textAlign: "center",
   },
 
   subtitle: {
     color: colors.textSecondary,
-    fontSize: typography.size.body,
+    fontSize: typography.size.button,
     textAlign: "center",
+    lineHeight: 22,
+  },
+
+  submitButton: {
+    borderRadius: radius.md,
+    marginTop: spacing.md,
   },
 });

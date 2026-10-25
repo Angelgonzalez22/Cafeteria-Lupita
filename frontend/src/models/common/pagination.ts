@@ -1,4 +1,5 @@
-/* Parámetros y metadatos de los listados paginados. */
+/* MODELOS DE PAGINACIÓN */
+
 export interface PaginationQuery {
   page?: number;
   pageSize?: number;

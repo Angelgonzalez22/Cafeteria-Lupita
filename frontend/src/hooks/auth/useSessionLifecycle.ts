@@ -1,4 +1,4 @@
-/* Mantiene la sesión al iniciar y volver a la app. */
+/* CICLO DE VIDA DE LA SESIÓN */
 
 import { useEffect } from "react";
 import { AppState } from "react-native";

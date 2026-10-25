@@ -1,6 +1,4 @@
-/*
- * Centraliza las peticiones y los errores de la API.
- */
+/* PETICIONES HTTP A LA API */
 
 import { create } from "axios";
 import type {

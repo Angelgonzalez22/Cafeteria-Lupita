@@ -1,4 +1,5 @@
-/* FUNCIONAR PARA CALCULAR TAMAÑOS Y DISTRIBUIR LOS COMPONENTES */
+/* DISTRIBUCIÓN DEL CONTENIDO */
+
 export const getGridLayout = (
   containerWidth: number,
   minCardWidth = 160,

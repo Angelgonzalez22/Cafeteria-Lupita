@@ -1,4 +1,5 @@
-/* HOOK PARA MANEJAR EL RESPONSIVE */
+/* MEDIDAS DE LA PANTALLA */
+
 import { useWindowDimensions } from "react-native";
 import { spacing } from "../constants/spacing";
 

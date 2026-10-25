@@ -1,6 +1,4 @@
-/*
- * Maneja el formulario y el inicio de sesión.
- */
+/* CONTROL DEL FORMULARIO DE ACCESO */
 
 import { useRef } from "react";
 import { useForm, useWatch } from "react-hook-form";

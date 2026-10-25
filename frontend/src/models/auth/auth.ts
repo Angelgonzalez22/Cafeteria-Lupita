@@ -1,4 +1,4 @@
-/* Define los contratos de autenticación y sesión. */
+/* MODELOS DE AUTENTICACIÓN */
 
 import type { ApiResponse } from "../common/apiResponse";
 import type { ApiErrorDetails } from "../common/apiError";

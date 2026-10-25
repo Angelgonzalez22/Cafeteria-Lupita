@@ -1,4 +1,5 @@
-/* Proporciona una caché estable sin ejecutar consultas ni operaciones de módulos. */
+/* CACHÉ DE CONSULTAS */
+
 import { useState } from "react";
 import type { PropsWithChildren } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";

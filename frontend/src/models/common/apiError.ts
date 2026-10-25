@@ -1,4 +1,5 @@
-/* Información reutilizable de los errores de comunicación. */
+/* MODELO DE ERRORES */
+
 export type ApiFailureKind =
   | "http"
   | "network"

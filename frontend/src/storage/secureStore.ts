@@ -1,6 +1,4 @@
-/*
- * Guarda y recupera la sesión del dispositivo.
- */
+/* ALMACENAMIENTO SEGURO DE SESIÓN */
 
 import * as SecureStore from "expo-secure-store";
 import { Platform } from "react-native";
