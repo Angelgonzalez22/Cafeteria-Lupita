@@ -8,6 +8,9 @@ public sealed class CrearPagoRequest : IValidatableObject
 {
     public Guid Id { get; init; }
     public Guid PedidoId { get; init; }
+    public bool ConfirmarPedidoAjeno { get; init; }
+    public decimal? TotalEsperado { get; init; }
+    public string? VersionPedido { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

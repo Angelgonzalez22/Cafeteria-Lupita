@@ -10,6 +10,6 @@ public sealed record DetallePedidoResponse(
 public sealed record PedidoResponse(
     Guid Id, long Numero, string Referencia, string? NombreCliente, string Cliente, string AtendidoPor,
     string EstadoPreparacion, string EstadoPago, IReadOnlyList<DetallePedidoResponse> Detalles, decimal Total,
-    DateTimeOffset CreadoEn, DateTimeOffset? CanceladoEn, string? MotivoCancelacion);
+    DateTimeOffset CreadoEn, DateTimeOffset? CanceladoEn, string? MotivoCancelacion, Guid CreadoPor = default, string? Version = null);
 
 public sealed record PedidoCreadoResult(PedidoResponse Pedido, bool Creado);

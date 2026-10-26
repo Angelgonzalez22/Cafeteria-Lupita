@@ -4,4 +4,5 @@ public interface IAuthService
 {
     Task<LoginResponse> LoginAsync(LoginRequest request, CancellationToken cancellationToken);
     Task<UsuarioResponse> MeAsync(Guid id, CancellationToken cancellationToken);
+    Task<LoginResponse> RenewAsync(Guid id, CancellationToken cancellationToken);
 }

@@ -34,11 +34,13 @@ public sealed class CocinaService(CafeteriaDbContext db, IUsuarioActual usuario,
         }
         var page = await pedidos.OrderBy(x => x.Numero)
             .Select(x => new ListadoData(x.Id, x.Numero, x.NombreCliente ?? x.Referencia,
-                x.EstadoPreparacion, x.CreadoEn, x.CanceladoEn != null, x.Eliminado != 0))
+                x.EstadoPreparacion, x.CreadoEn, x.CanceladoEn != null, x.Eliminado != 0,
+                x.Detalles.Where(d => d.Eliminado == 0).OrderBy(d => d.Id)
+                    .Select(d => new CocinaProductoResponse(d.ProductoId, d.Producto.Nombre, d.Cantidad)).ToList()))
             .PaginateAsync(query, "Pedidos de cocina obtenidos correctamente.", cancellationToken);
         return new(page.Status, page.Titulo, page.Mensaje,
             page.Data.Select(x => new CocinaListadoResponse(x.Id, x.Numero, x.Cliente, x.EstadoPreparacion,
-                clock.ToLocal(x.CreadoEn), x.Cancelado, x.Eliminado)).ToList(), page.Pagination);
+                clock.ToLocal(x.CreadoEn), x.Cancelado, x.Eliminado, x.Detalles)).ToList(), page.Pagination);
     }
 
     //SERVICIO PARA TRAER EL DETALLE OPERATIVO DE COCINA
@@ -83,7 +85,7 @@ public sealed class CocinaService(CafeteriaDbContext db, IUsuarioActual usuario,
     }
 
     private sealed record ListadoData(Guid Id, long Numero, string Cliente, string EstadoPreparacion, DateTime CreadoEn,
-        bool Cancelado, bool Eliminado);
+        bool Cancelado, bool Eliminado, List<CocinaProductoResponse> Detalles);
     private sealed record DetalleData(Guid Id, long Numero, string Cliente, string AtendidoPor, string EstadoPreparacion,
         DateTime CreadoEn, bool Cancelado, bool Eliminado, List<CocinaProductoResponse> Detalles);
 }

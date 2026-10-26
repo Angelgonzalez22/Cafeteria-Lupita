@@ -50,6 +50,7 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_HTTP_PORTS: 8080
       Jwt__Key: ${JWT_KEY:?Configura JWT_KEY de al menos 32 bytes}
+      Jwt__ExpirationMinutes: ${JWT_EXPIRATION_MINUTES:-720}
       Seed__Enabled: ${SEED_ENABLED:-false}
       Seed__Passwords__lupita: ${SEED_PASSWORD_LUPITA:-}
       Seed__Passwords__lucia: ${SEED_PASSWORD_LUCIA:-}

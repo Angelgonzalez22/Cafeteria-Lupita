@@ -1,36 +1,51 @@
 /* BOTÓN REUTILIZABLE */
 
+import { useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Pressable,
   StyleSheet,
-  Text,
   ViewStyle,
+  TextStyle,
   StyleProp,
 } from "react-native";
 
 import { colors } from "../../constants/colors";
 import { radius, spacing } from "../../constants/spacing";
 import { typography } from "../../constants/typography";
+import { useButtonAnimation } from "../../hooks/useButtonAnimation";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 type ButtonVariant =
   | "primary"
   | "secondary"
   | "danger"
+  | "warning"
   | "outline";
 
 type AppButtonProps = {
   title: string;
+  accessibilityLabel?: string;
   onPress: () => void;
   variant?: ButtonVariant;
   loading?: boolean;
   disabled?: boolean;
   fullWidth?: boolean;
   style?: StyleProp<ViewStyle>;
+  textStyle?: StyleProp<TextStyle>;
 };
 
 const getVariantColors = (variant: ButtonVariant) => {
   switch (variant) {
+    case "warning":
+      return {
+        background: colors.warning,
+        text: colors.textOnPrimary,
+        border: colors.warning,
+      };
+
     case "secondary":
       return {
         background: colors.primaryLight,
@@ -63,43 +78,52 @@ const getVariantColors = (variant: ButtonVariant) => {
 
 export const AppButton = ({
   title,
+  accessibilityLabel,
   onPress,
   variant = "primary",
   loading = false,
   disabled = false,
   fullWidth = false,
   style,
+  textStyle,
 }: AppButtonProps) => {
+  const [pressed, setPressed] = useState(false);
   const isDisabled = disabled || loading;
+  const progress = useButtonAnimation(isDisabled);
   const variantColors = getVariantColors(variant);
 
-  const backgroundColor = isDisabled
-    ? colors.disabledBackground
-    : variantColors.background;
+  const backgroundColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.disabledBackground, variantColors.background],
+  });
 
-  const textColor = isDisabled
-    ? colors.disabledText
-    : variantColors.text;
+  const textColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.disabledText, variantColors.text],
+  });
 
-  const borderColor = isDisabled
-    ? colors.disabled
-    : variantColors.border;
+  const borderColor = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [colors.disabled, variantColors.border],
+  });
 
   const handlePress = () => {
     if (!isDisabled) onPress();
   };
 
   return (
-    <Pressable
+    <AnimatedPressable
       onPress={handlePress}
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
       disabled={isDisabled}
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={accessibilityLabel ?? title}
       accessibilityState={{
         disabled: isDisabled,
         busy: loading,
       }}
-      style={({ pressed }) => [
+      style={[
         styles.button,
         {
           backgroundColor,
@@ -117,19 +141,20 @@ export const AppButton = ({
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={textColor}
+          color={isDisabled ? colors.disabledText : variantColors.text}
         />
       ) : (
-        <Text
+        <Animated.Text
           style={[
             styles.text,
             { color: textColor },
+            textStyle,
           ]}
         >
           {title}
-        </Text>
+        </Animated.Text>
       )}
-    </Pressable>
+    </AnimatedPressable>
   );
 };
 

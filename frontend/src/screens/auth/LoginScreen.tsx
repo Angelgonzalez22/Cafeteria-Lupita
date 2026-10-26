@@ -128,7 +128,7 @@ export const LoginScreen = () => {
             pinFocused.current = false;
             field.onBlur();
           }}
-          error={fieldState.error?.message}
+          error={field.value.length >= 6 ? fieldState.error?.message : undefined}
           disabled={loading}
           autoComplete="current-password"
           textContentType="password"

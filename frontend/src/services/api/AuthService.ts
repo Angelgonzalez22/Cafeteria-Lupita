@@ -24,6 +24,10 @@ export class AuthService extends HttpClient {
             { signal }
         );
     };
+
+    public renew = (signal?: AbortSignal): Promise<LoginResponse> => {
+        return this.post<LoginResponse>(`${this.path}/renovar`, undefined, { signal });
+    };
 }
 
 export const AuthInstance = new AuthService();

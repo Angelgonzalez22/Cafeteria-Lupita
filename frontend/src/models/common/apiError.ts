@@ -17,3 +17,8 @@ export interface ApiErrorDetails {
   codigo?: string;
   sesionInvalida?: boolean;
 }
+
+export interface ApiErrorMessage {
+  titulo: string;
+  mensaje: string;
+}

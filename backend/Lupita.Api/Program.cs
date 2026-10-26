@@ -12,6 +12,7 @@ using Lupita.Api.Services.Pedidos;
 using Lupita.Api.Services.Cocina;
 using Lupita.Api.Services.Pagos;
 using Lupita.Api.Services.Reportes;
+using Lupita.Api.Services.Inicio;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +48,8 @@ builder.Services.AddScoped<IPedidoService, PedidoService>();
 builder.Services.AddScoped<ICocinaService, CocinaService>();
 builder.Services.AddScoped<IPagoService, PagoService>();
 builder.Services.AddScoped<IReporteService, ReporteService>();
+builder.Services.AddScoped<IInicioService, InicioService>();
+builder.Services.AddScoped<OfflineService>();
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 builder.Services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
     .Configure<IOptions<JwtOptions>>((options, settings) =>

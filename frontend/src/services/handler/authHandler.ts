@@ -19,3 +19,7 @@ export const getMe = async (
 ): Promise<MeResponse> => {
     return AuthInstance.me(signal);
 };
+
+export const renewSession = async (signal?: AbortSignal): Promise<LoginResponse> => {
+    return AuthInstance.renew(signal);
+};

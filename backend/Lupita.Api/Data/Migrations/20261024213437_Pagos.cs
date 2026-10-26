@@ -1352,6 +1352,21 @@ namespace Lupita.Api.Data.Migrations
                 {
                     b.Navigation("Detalles");
                 });
+            modelBuilder.Entity("Lupita.Api.Models.OfflineRecord", b =>
+            {
+                b.Property<Guid>("Id").HasColumnType("uuid");
+                b.Property<Guid>("UsuarioId").HasColumnType("uuid");
+                b.Property<Guid>("DispositivoId").HasColumnType("uuid");
+                b.Property<string>("Tipo").IsRequired().HasMaxLength(30).HasColumnType("character varying(30)");
+                b.Property<string>("Estado").IsRequired().HasMaxLength(30).HasColumnType("character varying(30)");
+                b.Property<string>("Contenido").IsRequired().HasColumnType("text");
+                b.Property<string>("Resultado").IsRequired().HasColumnType("text");
+                b.Property<DateTime>("RegistradoEn").HasColumnType("timestamp with time zone");
+                b.HasKey("Id");
+                b.HasIndex("UsuarioId", "Tipo");
+                b.ToTable("offline_registros");
+                b.HasOne("Lupita.Api.Models.Usuario", null).WithMany().HasForeignKey("UsuarioId").OnDelete(DeleteBehavior.Restrict).IsRequired();
+            });
 #pragma warning restore 612, 618
         }
     }

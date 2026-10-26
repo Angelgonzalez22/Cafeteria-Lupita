@@ -10,6 +10,7 @@ import {
   validarSesion,
 } from "../../services/handler/sessionHandler";
 import { useSessionStore } from "../../store/sessionStore";
+import { sessionTiming } from "../../constants/session";
 
 export const useSessionLifecycle = () => {
   const queryClient = useQueryClient();
@@ -17,16 +18,25 @@ export const useSessionLifecycle = () => {
   const busy = useSessionStore((state) => state.busy);
   useEffect(() => {
     void restaurarSesion();
+    let connected = false;
     const app = AppState.addEventListener("change", (status) => {
       if (status === "active") {
         void validarSesion();
       }
     });
     const unsubscribeNetwork = NetInfo.addEventListener((network) => {
-      if (network.isConnected && network.isInternetReachable !== false) {
+      connected = !!network.isConnected && network.isInternetReachable !== false;
+      if (connected) {
         void validarSesion();
       }
     });
+    const renewal = setInterval(() => {
+      if (!connected || AppState.currentState !== "active") return;
+      const currentSession = useSessionStore.getState().session;
+      if (currentSession && Date.parse(currentSession.expiraEn) - Date.now() <= sessionTiming.renewBeforeMs) {
+        void validarSesion();
+      }
+    }, sessionTiming.checkIntervalMs);
     const unsubscribeSession = useSessionStore.subscribe((next, previous) => {
       if (next.revision !== previous.revision) {
         void queryClient.cancelQueries();
@@ -38,6 +48,7 @@ export const useSessionLifecycle = () => {
       app.remove();
       unsubscribeNetwork();
       unsubscribeSession();
+      clearInterval(renewal);
     };
   }, [queryClient]);
   useEffect(() => {

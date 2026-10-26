@@ -24,4 +24,13 @@ public sealed class AuthController(IAuthService auth) : ControllerBase
         if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var id)) throw new UnauthorizedException("La sesión no es válida.");
         return Ok(ApiResponse<UsuarioResponse>.Success(await auth.MeAsync(id, cancellationToken), "Operación exitosa", "Usuario consultado correctamente."));
     }
+
+    [HttpPost("renovar"), Authorize]
+    [ProducesResponseType<ApiResponse<LoginResponse>>(200)]
+    [ProducesResponseType<ApiResponse<object>>(401)]
+    public async Task<ActionResult<ApiResponse<LoginResponse>>> Renew(CancellationToken cancellationToken)
+    {
+        if (!Guid.TryParse(User.FindFirst("sub")?.Value, out var id)) throw new UnauthorizedException("La sesión no es válida.");
+        return Ok(ApiResponse<LoginResponse>.Success(await auth.RenewAsync(id, cancellationToken), "Operación exitosa", "Sesión renovada correctamente."));
+    }
 }

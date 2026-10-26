@@ -1,6 +1,7 @@
 /* ERRORES DE LA API */
 
 import { isAxiosError, isCancel } from "axios";
+import { apiErrors } from "../../constants/apiErrors";
 
 import type { ApiErrorDetails, ApiFailureKind } from "../../models/common/apiError";
 
@@ -23,14 +24,45 @@ export class ApiError extends Error {
     this.sesionInvalida = details.sesionInvalida ?? false;
   }
 
+  public static configuration(codigo: string): ApiError {
+    return new ApiError({
+      tipo: "configuration",
+      codigo,
+      ...apiErrors.configuration,
+    });
+  }
+
+  public static invalidResponse(): ApiError {
+    return new ApiError({
+      tipo: "unknown",
+      codigo: "INVALID_RESPONSE",
+      ...apiErrors.invalidResponse,
+    });
+  }
+
   public static from(error: unknown): ApiError {
     if (error instanceof ApiError) return error;
+
+    if (typeof error === "object" && error !== null
+      && "name" in error && error.name === "ApiError"
+      && "titulo" in error && typeof error.titulo === "string"
+      && "mensaje" in error && typeof error.mensaje === "string"
+      && "tipo" in error && (error.tipo === "http" || error.tipo === "network" || error.tipo === "timeout"
+        || error.tipo === "canceled" || error.tipo === "configuration" || error.tipo === "storage" || error.tipo === "unknown")) {
+      return new ApiError({
+        tipo: error.tipo,
+        titulo: error.titulo,
+        mensaje: error.mensaje,
+        status: "status" in error && typeof error.status === "number" ? error.status : undefined,
+        codigo: "codigo" in error && typeof error.codigo === "string" ? error.codigo : undefined,
+        sesionInvalida: "sesionInvalida" in error && error.sesionInvalida === true,
+      });
+    }
 
     if (!isAxiosError<unknown>(error)) {
       return new ApiError({
         tipo: "unknown",
-        titulo: "Error inesperado",
-        mensaje: "No se pudo completar la operación.",
+        ...apiErrors.unknown,
       });
     }
 
@@ -45,6 +77,16 @@ export class ApiError extends Error {
 
     if (error.response) {
       const status = error.response.status;
+
+      if (status >= 500) {
+        return new ApiError({
+          tipo: "http",
+          status,
+          codigo: error.code,
+          ...apiErrors.server,
+        });
+      }
+
       const payload: unknown = error.response.data;
       const data = typeof payload === "object" && payload !== null ? payload : {};
       let login = false;
@@ -63,7 +105,6 @@ export class ApiError extends Error {
         404: "El recurso solicitado no está disponible.",
         409: "La operación entró en conflicto con los datos actuales.",
         422: "Los datos enviados no son válidos.",
-        500: "Ocurrió un error en el servidor.",
       };
 
       return new ApiError({
@@ -71,9 +112,9 @@ export class ApiError extends Error {
         status,
         codigo: error.code,
         titulo: "titulo" in data && typeof data.titulo === "string"
-          ? data.titulo : "Solicitud no completada",
+          ? data.titulo : apiErrors.unknown.titulo,
         mensaje: "mensaje" in data && typeof data.mensaje === "string"
-          ? data.mensaje : mensajes[status] ?? "No se pudo completar la solicitud.",
+          ? data.mensaje : mensajes[status] ?? apiErrors.unknown.mensaje,
         sesionInvalida: status === 401 && !login
           && Boolean(error.config?.headers?.get("Authorization")),
       });
@@ -83,18 +124,16 @@ export class ApiError extends Error {
       return new ApiError({
         tipo: "timeout",
         codigo: error.code,
-        titulo: "Tiempo agotado",
-        mensaje: "El servidor tardó demasiado en responder. Inténtalo nuevamente.",
+        ...apiErrors.timeout,
       });
     }
 
+    const networkFailure = error.code === "ERR_NETWORK" || Boolean(error.request);
+
     return new ApiError({
-      tipo: error.request ? "network" : "unknown",
+      tipo: networkFailure ? "network" : "unknown",
       codigo: error.code,
-      titulo: error.request ? "Sin conexión" : "Solicitud no completada",
-      mensaje: error.request
-        ? "No se pudo conectar con el servidor. Verifica la conexión y la dirección de la API."
-        : "No se pudo preparar la solicitud.",
+      ...(networkFailure ? apiErrors.network : apiErrors.unknown),
     });
   }
 }

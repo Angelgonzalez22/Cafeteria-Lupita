@@ -36,4 +36,12 @@ public sealed class AuthService(CafeteriaDbContext db, IPasswordHasher<Usuario> 
             ?? throw new UnauthorizedException("La sesión ya no está disponible.");
         return new(user.Id, user.Nombre, user.Apellido, user.Rol.Nombre);
     }
+
+    public async Task<LoginResponse> RenewAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var user = await db.Usuarios.AsNoTracking().Include(x => x.Rol)
+            .SingleOrDefaultAsync(x => x.Id == id && x.Activo && x.Eliminado == 0, cancellationToken)
+            ?? throw new UnauthorizedException("La sesión ya no está disponible. Inicia sesión nuevamente.");
+        return tokens.Create(user);
+    }
 }

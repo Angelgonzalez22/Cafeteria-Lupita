@@ -20,9 +20,14 @@ import { typography } from "../constants/typography";
 
 import { useSessionLifecycle } from "../hooks/auth/useSessionLifecycle";
 import { useAppStartup } from "../hooks/useAppStartup";
+import { useOfflineLifecycle } from "../hooks/useOfflineLifecycle";
 import type { RootStackParamList } from "../models/auth/navigation";
 import { LoginScreen } from "../screens/auth/LoginScreen";
 import { RoleHomeScreen } from "../screens/home/RoleHomeScreen";
+import { NuevaVentaScreen } from "../screens/pedidos/NuevaVentaScreen";
+import { DetallePedidoScreen } from "../screens/pedidos/DetallePedidoScreen";
+import { PerfilScreen } from "../screens/settings/PerfilScreen";
+import { MainTabNavigator } from "./MainTabNavigator";
 import { SplashScreen } from "../screens/startup/SplashScreen";
 import {
   restaurarSesion,
@@ -34,6 +39,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
   useSessionLifecycle();
+  const offline = useOfflineLifecycle();
 
   const {
     session,
@@ -85,11 +91,30 @@ export const RootNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {session ? (
-          <Stack.Screen
-            key={session.usuario.id + route}
-            name={route}
-            component={RoleHomeScreen}
-          />
+          <Stack.Group navigationKey={session.usuario.id + route}>
+            <Stack.Screen
+              name={route}
+              component={route === "SinAcceso" ? RoleHomeScreen : MainTabNavigator}
+            />
+            {route !== "SinAcceso" && (
+              <>
+                <Stack.Screen name="DetallePedido" component={DetallePedidoScreen} />
+                <Stack.Screen name="Perfil" component={PerfilScreen} />
+              </>
+            )}
+            {(role === "ADMINISTRADOR" || role === "CAJERO") && (
+              <Stack.Screen
+                name="NuevaVenta"
+                component={NuevaVentaScreen}
+                options={{
+                  presentation: "transparentModal",
+                  animation: "none",
+                  contentStyle: { backgroundColor: "transparent" },
+                  gestureEnabled: false,
+                }}
+              />
+            )}
+          </Stack.Group>
         ) : (
           <Stack.Screen
             name="Login"
@@ -127,9 +152,19 @@ export const RootNavigator = () => {
       style={styles.root}
       onLayout={handleLayout}
     >
-      <StatusBar style="dark" />
+      <StatusBar style={!showSplash && ready && !session ? "light" : "dark"} />
       {renderContent()}
       {!showSplash && renderErrorModal()}
+      <AppModal
+        visible={!showSplash && ready && !!session && !error && !!offline.notice}
+        status={200}
+        titulo="Pedidos sincronizados"
+        mensaje={offline.notice?.pedidoIds.length === 1
+          ? "El pedido registrado sin Internet se subió correctamente."
+          : `Los ${offline.notice?.pedidoIds.length ?? 0} pedidos registrados sin Internet se subieron correctamente.`}
+        acceptText="Entendido"
+        onAccept={offline.dismissNotice}
+      />
     </View>
   );
 };

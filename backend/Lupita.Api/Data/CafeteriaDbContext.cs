@@ -9,6 +9,7 @@ public sealed class CafeteriaDbContext(DbContextOptions<CafeteriaDbContext> opti
     public DbSet<Pedido> Pedidos => Set<Pedido>();
     public DbSet<DetallePedido> DetallesPedido => Set<DetallePedido>();
     public DbSet<Pago> Pagos => Set<Pago>();
+    public DbSet<OfflineRecord> OfflineRegistros => Set<OfflineRecord>();
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasSequence<long>("pedidos_numero_seq");

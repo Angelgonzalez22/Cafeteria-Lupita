@@ -7,12 +7,13 @@ using Lupita.Api.Common.Time;
 using Lupita.Api.Data;
 using Lupita.Api.DTOs.Pagos;
 using Lupita.Api.Models;
+using Lupita.Api.Services.Pedidos;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 
 namespace Lupita.Api.Services.Pagos;
 
-public sealed class PagoService(CafeteriaDbContext db, IUsuarioActual usuario, IAppClock clock) : IPagoService
+public sealed class PagoService(CafeteriaDbContext db, IUsuarioActual usuario, IAppClock clock, IPedidoService pedidos) : IPagoService
 {
     //SERVICIO PARA COBRAR UN PEDIDO COMPLETO EN EFECTIVO
     public async Task<PagoCreadoResult> CrearAsync(CrearPagoRequest request, CancellationToken cancellationToken)
@@ -32,8 +33,14 @@ public sealed class PagoService(CafeteriaDbContext db, IUsuarioActual usuario, I
         await PedidoConcurrency.BloquearAsync(db, request.PedidoId, cancellationToken);
         var pedido = await db.Pedidos.SingleOrDefaultAsync(x => x.Id == request.PedidoId, cancellationToken)
             ?? throw new NotFoundException("El pedido no existe.");
+        if (pedido.CreadoPor != usuario.Id && (!usuario.EsAdministrador || !request.ConfirmarPedidoAjeno))
+            throw new ForbiddenException("Solo puedes cobrar tus pedidos. Administración debe confirmar expresamente el cobro de un pedido ajeno.");
         if (pedido.Eliminado != 0 || pedido.CanceladoEn is not null)
             throw new BusinessException("No se puede cobrar un pedido cancelado o eliminado.");
+        if (request.TotalEsperado.HasValue && request.TotalEsperado.Value != pedido.Total)
+            throw new ConflictException("El importe del pedido cambió. Actualiza el detalle antes de confirmar el cobro.");
+        if (request.VersionPedido is not null && request.VersionPedido != (await pedidos.ObtenerAsync(pedido.Id, cancellationToken)).Version)
+            throw new ConflictException("Los detalles del pedido cambiaron. Actualízalos antes de confirmar el cobro.");
         if (pedido.EstadoPago != EstadosPedido.Pendiente ||
             await db.Pagos.AnyAsync(x => x.PedidoId == pedido.Id && !x.Anulado, cancellationToken))
             throw new ConflictException("El pedido ya tiene un cobro activo.");

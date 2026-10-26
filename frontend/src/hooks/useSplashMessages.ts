@@ -14,7 +14,7 @@ export const useSplashMessages = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setMessageIndex((current) => (current + 1) % messages.length);
-    }, 1100);
+    }, 500);
 
     return () => {
       clearInterval(timer);

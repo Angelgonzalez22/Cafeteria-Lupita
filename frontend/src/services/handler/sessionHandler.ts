@@ -12,8 +12,9 @@ import {
     deleteSession,
 } from "../../storage/secureStore";
 import { useSessionStore } from "../../store/sessionStore";
-import { login, getMe } from "./authHandler";
+import { login, getMe, renewSession } from "./authHandler";
 import { ApiError } from "../httpClient";
+import { sessionTiming } from "../../constants/session";
 
 let writes: Promise<unknown> = Promise.resolve();
 let validation: AbortController | null = null;
@@ -28,11 +29,6 @@ const serialize = <T>(operation: () => Promise<T>): Promise<T> => {
 };
 
 const state = useSessionStore.getState;
-const invalidResponse = () => new ApiError({
-    tipo: "unknown",
-    titulo: "Respuesta inválida",
-    mensaje: "No se pudo recuperar la sesión. Intenta nuevamente."
-});
 const begin = () => {
     validation?.abort();
     const revision = state().revision + 1;
@@ -58,7 +54,7 @@ export const iniciarSesion = async (request: LoginRequest): Promise<void> => {
         const response = await login(loginSchema.parse(request));
         const parsed = sesionSchema.safeParse(response.data);
         if (response.status < 200 || response.status >= 300 || !parsed.success || expired(parsed.data)) {
-            throw invalidResponse();
+            throw ApiError.invalidResponse();
         }
 
         const session = {
@@ -66,7 +62,7 @@ export const iniciarSesion = async (request: LoginRequest): Promise<void> => {
             token: parsed.data.token.replace(/^(?:Bearer\s+)+/i, "").trim()
         };
         if (!session.token) {
-            throw invalidResponse();
+            throw ApiError.invalidResponse();
         }
 
         await serialize(async () => {
@@ -75,6 +71,7 @@ export const iniciarSesion = async (request: LoginRequest): Promise<void> => {
             }
 
             await saveSession(session);
+            requiresRemoval = false;
             if (current(revision)) {
                 useSessionStore.setState({
                     session,
@@ -174,21 +171,31 @@ export const validarSesion = async (): Promise<void> => {
     const controller = new AbortController();
     validation = controller;
     try {
-        const response = await getMe(controller.signal);
-        const parsed = usuarioSchema.safeParse(response.data);
-        if (!parsed.success || response.status !== 200 || parsed.data.id !== snapshot.session.usuario.id) {
-            throw invalidResponse();
+        let nextSession: Sesion;
+        const remaining = Date.parse(snapshot.session.expiraEn) - Date.now();
+        if (remaining <= sessionTiming.renewBeforeMs) {
+            const response = await renewSession(controller.signal);
+            const parsed = sesionSchema.safeParse(response.data);
+            if (!parsed.success || response.status !== 200 || parsed.data.usuario.id !== snapshot.session.usuario.id
+                || Date.parse(parsed.data.expiraEn) <= Date.parse(snapshot.session.expiraEn) || expired(parsed.data)) {
+                throw ApiError.invalidResponse();
+            }
+            nextSession = parsed.data;
+        } else {
+            const response = await getMe(controller.signal);
+            const parsed = usuarioSchema.safeParse(response.data);
+            if (!parsed.success || response.status !== 200 || parsed.data.id !== snapshot.session.usuario.id) {
+                throw ApiError.invalidResponse();
+            }
+            nextSession = { ...snapshot.session, usuario: parsed.data };
         }
 
         await serialize(async () => {
-            if (!current(revision) || !state().session) {
+            if (!current(revision) || state().session?.token !== snapshot.session!.token) {
                 return;
             }
 
-            const session = {
-                ...snapshot.session!,
-                usuario: parsed.data
-            };
+            const session = nextSession;
             await saveSession(session);
             if (current(revision)) {
                 useSessionStore.setState({
@@ -222,6 +229,7 @@ export const cerrarSesion = async (required = false): Promise<void> => {
     }
 
     const revision = begin();
+    if (required) useSessionStore.setState({ session: null, ready: true });
     await serialize(async () => {
         try {
             await deleteSession();
@@ -237,7 +245,7 @@ export const cerrarSesion = async (required = false): Promise<void> => {
                 useSessionStore.setState({
                     error: ApiError.from(error),
                     session: required ? null : state().session,
-                    ready: required ? false : state().ready,
+                    ready: required ? true : state().ready,
                 });
             }
         } finally {

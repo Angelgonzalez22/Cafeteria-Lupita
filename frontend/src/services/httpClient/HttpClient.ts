@@ -13,21 +13,11 @@ import { ApiError } from "./ApiError";
 
 const clients = new Map<string, AxiosInstance>();
 
-const configurationError = (mensaje: string): ApiError => {
-    return new ApiError({
-        tipo: "configuration",
-        titulo: "Configuración de API inválida",
-        mensaje,
-    });
-};
-
 const resolveBaseUrl = (): string => {
     const value = process.env.EXPO_PUBLIC_API_URL?.trim();
 
     if (!value) {
-        throw configurationError(
-            "Configura EXPO_PUBLIC_API_URL con el prefijo completo de la API."
-        );
+        throw ApiError.configuration("API_URL_MISSING");
     }
 
     try {
@@ -36,9 +26,7 @@ const resolveBaseUrl = (): string => {
         const hasExtraData = url.username || url.password || url.search || url.hash;
 
         if (!validProtocol || hasExtraData) {
-            throw configurationError(
-                "La URL de la API debe ser HTTP o HTTPS, sin credenciales ni parámetros."
-            );
+            throw ApiError.configuration("API_URL_INVALID");
         }
 
         return url.toString().replace(/\/+$/, "");
@@ -47,9 +35,7 @@ const resolveBaseUrl = (): string => {
             throw error;
         }
 
-        throw configurationError(
-            "EXPO_PUBLIC_API_URL debe ser una dirección absoluta válida."
-        );
+        throw ApiError.configuration("API_URL_INVALID");
     }
 };
 
@@ -99,9 +85,7 @@ export abstract class HttpClient {
             || destination.pathname.startsWith(allowed.pathname + "/");
 
         if (!sameOrigin || !allowedPath) {
-            throw configurationError(
-                "La solicitud debe pertenecer a la API configurada."
-            );
+            throw ApiError.configuration("API_DESTINATION_INVALID");
         }
 
         config.headers.delete("Authorization");

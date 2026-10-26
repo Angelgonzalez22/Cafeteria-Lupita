@@ -14,6 +14,7 @@ public sealed class PedidoQuery : PaginationQuery, IValidatableObject
     public bool? Cancelados { get; init; }
     public bool? Eliminados { get; init; }
     public Guid? EmpleadoId { get; init; }
+    public bool SoloMios { get; init; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

@@ -71,18 +71,19 @@ public sealed class PedidoService(CafeteriaDbContext db, IUsuarioActual usuario,
     //SERVICIO PARA TRAER EL DETALLE DE UN PEDIDO
     public async Task<PedidoResponse> ObtenerAsync(Guid id, CancellationToken cancellationToken)
     {
-        var pedido = await db.Pedidos.AsNoTracking().Where(x => x.Id == id && x.Eliminado == 0)
+        var pedido = await db.Pedidos.AsNoTracking().Where(x => x.Id == id && x.Eliminado == 0 && (usuario.EsAdministrador || x.CreadoPor == usuario.Id))
             .Select(x => new PedidoData(x.Id, x.Numero, x.Referencia, x.NombreCliente,
                 x.Creador.Nombre + " " + x.Creador.Apellido, x.EstadoPreparacion, x.EstadoPago,
                 x.Detalles.Where(d => d.Eliminado == 0).OrderBy(d => d.Id)
                     .Select(d => new DetallePedidoResponse(d.ProductoId, d.Producto.Nombre, d.Cantidad, d.PrecioUnitario, d.Subtotal)).ToList(),
-                x.Total, x.CreadoEn, x.CanceladoEn, x.MotivoCancelacion))
+                x.Total, x.CreadoEn, x.CanceladoEn, x.MotivoCancelacion, x.CreadoPor))
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("El pedido no está disponible.");
-        return new(pedido.Id, pedido.Numero, pedido.Referencia, pedido.NombreCliente,
+        var response = new PedidoResponse(pedido.Id, pedido.Numero, pedido.Referencia, pedido.NombreCliente,
             pedido.NombreCliente ?? pedido.Referencia, pedido.AtendidoPor, pedido.EstadoPreparacion,
             pedido.EstadoPago, pedido.Detalles, pedido.Total, clock.ToLocal(pedido.CreadoEn),
-            pedido.CanceladoEn.HasValue ? clock.ToLocal(pedido.CanceladoEn.Value) : null, pedido.MotivoCancelacion);
+            pedido.CanceladoEn.HasValue ? clock.ToLocal(pedido.CanceladoEn.Value) : null, pedido.MotivoCancelacion, pedido.CreadoPor);
+        return response with { Version = PedidoVersion.Calculate(response) };
     }
 
     //SERVICIO PARA TRAER LOS PEDIDOS CON FILTROS
@@ -91,6 +92,7 @@ public sealed class PedidoService(CafeteriaDbContext db, IUsuarioActual usuario,
         if (query.EmpleadoId.HasValue && !usuario.EsAdministrador)
             throw new ForbiddenException("No tienes permisos para filtrar por empleado.");
         var pedidos = db.Pedidos.AsNoTracking();
+        if (query.SoloMios || !usuario.EsAdministrador) pedidos = pedidos.Where(x => x.CreadoPor == usuario.Id);
         if (query.Eliminados.HasValue) pedidos = pedidos.Where(x => (x.Eliminado != 0) == query.Eliminados.Value);
         if (query.Cancelados.HasValue) pedidos = pedidos.Where(x => (x.CanceladoEn != null) == query.Cancelados.Value);
         if (query.EmpleadoId.HasValue) pedidos = pedidos.Where(x => x.CreadoPor == query.EmpleadoId.Value);
@@ -204,7 +206,7 @@ public sealed class PedidoService(CafeteriaDbContext db, IUsuarioActual usuario,
         PedidoConcurrency.BloquearAsync(db, id, cancellationToken);
 
     private async Task<Pedido> CargarAsync(Guid id, CancellationToken cancellationToken) =>
-        await db.Pedidos.Include(x => x.Detalles).SingleOrDefaultAsync(x => x.Id == id && x.Eliminado == 0, cancellationToken)
+        await db.Pedidos.Include(x => x.Detalles).SingleOrDefaultAsync(x => x.Id == id && x.Eliminado == 0 && (usuario.EsAdministrador || x.CreadoPor == usuario.Id), cancellationToken)
         ?? throw new NotFoundException("El pedido no está disponible.");
 
     private async Task<Dictionary<Guid, ProductoPrecio>> ProductosDisponiblesAsync(
@@ -258,7 +260,7 @@ public sealed class PedidoService(CafeteriaDbContext db, IUsuarioActual usuario,
 
     private sealed record PedidoData(Guid Id, long Numero, string Referencia, string? NombreCliente, string AtendidoPor,
         string EstadoPreparacion, string EstadoPago, List<DetallePedidoResponse> Detalles, decimal Total,
-        DateTime CreadoEn, DateTime? CanceladoEn, string? MotivoCancelacion);
+        DateTime CreadoEn, DateTime? CanceladoEn, string? MotivoCancelacion, Guid CreadoPor);
 
     private sealed record ListadoData(Guid Id, long Numero, string Cliente, string AtendidoPor, decimal Total,
         string EstadoPreparacion, string EstadoPago, DateTime CreadoEn, bool Cancelado, bool Eliminado);

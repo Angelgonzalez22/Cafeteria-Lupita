@@ -9,7 +9,7 @@ export const useAppStartup = (ready: boolean, busy: boolean) => {
   useEffect(() => {
     const timer = setTimeout(() => {
       setIntroFinished(true);
-    }, 3300);
+    }, 1500);
 
     return () => {
       clearTimeout(timer);
